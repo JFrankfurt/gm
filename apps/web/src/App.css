@@ -1,0 +1,93 @@
+.appShell {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas:
+    "topbar topbar topbar"
+    "palette workspace props";
+}
+
+.topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(13, 18, 28, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.topbarTitle {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.topbarActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.palette {
+  grid-area: palette;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+}
+
+.props {
+  grid-area: props;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  }
+
+.workspace {
+  grid-area: workspace;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 0%, rgba(120, 80, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 70% 30%, rgba(0, 220, 255, 0.06), transparent 45%),
+    #0b0f17;
+}
+
+.cardTitle {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+  }
+
+.input {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  opacity: 0.75;
+  word-break: break-all;
+}

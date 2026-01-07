@@ -31,7 +31,7 @@ export type FrameNode = NodeBase & {
   };
 };
 
-export type WidgetType = 'priceChart' | 'orderEntry' | 'marketWatch' | 'plugin';
+export type WidgetType = 'priceChart' | 'orderEntry' | 'marketWatch' | 'hyperliquidChart' | 'hyperliquidTrade' | 'plugin';
 
 export type WidgetNode = NodeBase & {
   type: 'widget';
@@ -122,7 +122,7 @@ export const zWidgetNode = zNodeBase.extend({
     .discriminatedUnion('widgetType', [
       z
         .object({
-          widgetType: z.enum(['priceChart', 'orderEntry', 'marketWatch']),
+          widgetType: z.enum(['priceChart', 'orderEntry', 'marketWatch', 'hyperliquidChart', 'hyperliquidTrade']),
           symbol: z.string().optional(),
           timeframe: z.enum(['1m', '5m', '15m', '1h', '4h', '1d']).optional(),
         })

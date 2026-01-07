@@ -277,7 +277,11 @@ export function WorkspaceStage(props: {
                 ? { widgetType: 'priceChart', symbol: 'BTC-USD', timeframe: '1m' }
                 : type === 'orderEntry'
                   ? { widgetType: 'orderEntry', symbol: 'ETH-USD' }
-                  : { widgetType: 'marketWatch' },
+                  : type === 'hyperliquidChart'
+                    ? { widgetType: 'hyperliquidChart', symbol: 'BTC', timeframe: '1m' }
+                    : type === 'hyperliquidTrade'
+                      ? { widgetType: 'hyperliquidTrade', symbol: 'BTC' }
+                      : { widgetType: 'marketWatch' },
             createdAt: now,
             updatedAt: now,
           },
@@ -400,8 +404,8 @@ export function WorkspaceStage(props: {
         }
 
         if (mode.current === 'panning' && panStart.current) {
-          const dx = e.clientX - panStart.current.x;
-          const dy = e.clientY - panStart.current.y;
+        const dx = e.clientX - panStart.current.x;
+        const dy = e.clientY - panStart.current.y;
           pendingPan.current = { dx, dy };
           scheduleApply();
           return;
@@ -502,7 +506,7 @@ export function WorkspaceStage(props: {
             ghostWorldRect={ghostWorldRect}
             onRenderMs={(ms) => props.onPerf?.({ renderMs: ms })}
           />
-          <WidgetOverlayLayer doc={props.doc} viewport={props.viewport} width={size.width} height={size.height} />
+          <WidgetOverlayLayer doc={props.doc} viewport={props.viewport} width={size.width} height={size.height} dispatch={props.dispatch} />
         </>
       )}
       {marquee && (

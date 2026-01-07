@@ -224,6 +224,18 @@ export function createWorkspaceRepo(opts: { dbPath: string }) {
     return opRepo.getLatestSeq(workspaceId);
   }
 
+  function listWorkspacesByOwner(ownerId: string): Array<{ workspaceId: string; updatedAt: string }> {
+    const stmt = db.prepare(
+      `SELECT w.workspace_id, w.updated_at
+       FROM workspaces w
+       JOIN workspace_acl acl ON w.workspace_id = acl.workspace_id
+       WHERE acl.owner_id = ?
+       ORDER BY w.updated_at DESC`
+    );
+    const rows = stmt.all(ownerId) as Array<{ workspace_id: string; updated_at: string }>;
+    return rows.map((r) => ({ workspaceId: r.workspace_id, updatedAt: r.updated_at }));
+  }
+
   return {
     createWorkspace,
     createWorkspaceWithDoc,
@@ -234,5 +246,6 @@ export function createWorkspaceRepo(opts: { dbPath: string }) {
     applyAndAppendOp,
     getOpsSince,
     getLatestSeq,
+    listWorkspacesByOwner,
   };
 }

@@ -138,7 +138,7 @@ export function WidgetHost(props: {
       } satisfies WidgetMessage,
       '*',
     );
-  }, [ready, node.id, node.props, doc.version, viewerId, installed.granted]);
+  }, [ready, node.id, node.props, doc, viewerId, installed.granted]);
 
   return (
     <iframe

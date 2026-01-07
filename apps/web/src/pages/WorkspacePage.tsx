@@ -31,6 +31,9 @@ import {
   setGrantedCapabilities,
   upsertInstalledWidget,
 } from "../plugins/registry";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { UserSelector } from "../components/UserSelector";
+import { WorkspaceBrowser } from "../components/WorkspaceBrowser";
 
 type LoadState =
   | { type: "idle" }
@@ -369,6 +372,7 @@ export function WorkspacePage() {
           <div className="mono">{workspaceId}</div>
         </div>
         <div className="topbarActions">
+          <UserSelector />
           <button
             className="btn"
             onClick={onCopyShareLink}
@@ -398,6 +402,7 @@ export function WorkspacePage() {
               {isCopying ? "Copying…" : "Make a copy"}
             </button>
           )}
+          <ConnectButton />
         </div>
       </div>
 
@@ -420,6 +425,16 @@ export function WorkspacePage() {
           <PaletteDragItem
             widgetType="marketWatch"
             label="Market Watch"
+            disabled={loadState.type !== "loaded" || !loadState.canEdit}
+          />
+          <PaletteDragItem
+            widgetType="hyperliquidChart"
+            label="Hyperliquid Chart"
+            disabled={loadState.type !== "loaded" || !loadState.canEdit}
+          />
+          <PaletteDragItem
+            widgetType="hyperliquidTrade"
+            label="Hyperliquid Trade"
             disabled={loadState.type !== "loaded" || !loadState.canEdit}
           />
           <button className="btn" onClick={() => setSnapToGrid((v) => !v)} title="Snap move/resize to grid">
@@ -729,6 +744,10 @@ export function WorkspacePage() {
               </div>
             );
           })()}
+
+        <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <WorkspaceBrowser />
+        </div>
       </div>
     </div>
   );

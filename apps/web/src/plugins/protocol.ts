@@ -39,7 +39,7 @@ export type RpcRequestMessage = {
   type: 'gm:rpc:req';
   id: string;
   method: string;
-  params: unknown;
+  params?: unknown;
 };
 
 export type RpcResponseMessage = {
@@ -53,7 +53,7 @@ export type RpcResponseMessage = {
 export type EventMessage = {
   type: 'gm:evt';
   name: string;
-  payload: unknown;
+  payload?: unknown;
 };
 
 export type WidgetMessage = HostInitMessage | WidgetReadyMessage | RpcRequestMessage | RpcResponseMessage | EventMessage;
@@ -91,7 +91,7 @@ export const zRpcRequestMessage = z.object({
   type: z.literal('gm:rpc:req'),
   id: z.string().min(1),
   method: z.string().min(1),
-  params: z.unknown().default({}),
+  params: z.unknown().optional().default({}),
 });
 
 export const zRpcResponseMessage = z.object({
@@ -110,7 +110,7 @@ export const zRpcResponseMessage = z.object({
 export const zEventMessage = z.object({
   type: z.literal('gm:evt'),
   name: z.string().min(1),
-  payload: z.unknown(),
+  payload: z.unknown().optional(),
 });
 
 export const zWidgetMessage = z.discriminatedUnion('type', [

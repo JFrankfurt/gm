@@ -93,8 +93,8 @@ describe("doc sync websocket", () => {
        })
      );
     const [snap] = await waitForMessages(ws, 1);
-    expect(snap.type).toBe("snapshot");
-    expect(snap.doc.workspaceId).toBe(workspaceId);
+    expect((snap as any).type).toBe("snapshot");
+    expect((snap as any).doc.workspaceId).toBe(workspaceId);
 
     const op = {
       opId: "op1",
@@ -107,15 +107,15 @@ describe("doc sync websocket", () => {
     ws.send(JSON.stringify({ type: "op", op }));
     const msgs = await waitForMessages(ws, 2);
 
-    const ack = msgs.find((m) => m.type === "ack");
-    const broadcast = msgs.find((m) => m.type === "op");
+    const ack = msgs.find((m: any) => m.type === "ack");
+    const broadcast = msgs.find((m: any) => m.type === "op");
 
     expect(ack).toBeTruthy();
-    expect(ack.opId).toBe("op1");
-    expect(typeof ack.serverSeq).toBe("number");
+    expect((ack as any).opId).toBe("op1");
+    expect(typeof (ack as any).serverSeq).toBe("number");
 
     expect(broadcast).toBeTruthy();
-    expect(broadcast.op.opId).toBe("op1");
+    expect((broadcast as any).op.opId).toBe("op1");
 
     ws.close();
     await app.close();

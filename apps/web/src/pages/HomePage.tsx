@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiCreateWorkspace } from '../api/workspaces';
+import { UserSelector } from '../components/UserSelector';
+import { WorkspaceBrowser } from '../components/WorkspaceBrowser';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -20,11 +22,15 @@ export function HomePage() {
   }
 
   return (
-    <div style={{ height: '100%', display: 'grid', placeItems: 'center' }}>
+    <div style={{ height: '100%', display: 'grid', placeItems: 'center', padding: 20 }}>
       <div style={{ width: 680, maxWidth: '92vw' }}>
         <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>GM Workspace</div>
         <div style={{ opacity: 0.75, marginBottom: 18 }}>
           Proof-of-concept Figma-like canvas workspace for a crypto trading dashboard.
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <UserSelector />
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 18 }}>
@@ -51,6 +57,10 @@ export function HomePage() {
           <div className="mono" style={{ marginTop: 10 }}>
             Shareable URL format: <span style={{ opacity: 0.9 }}>/w/&lt;workspaceId&gt;</span>
           </div>
+        </div>
+
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <WorkspaceBrowser />
         </div>
       </div>
     </div>

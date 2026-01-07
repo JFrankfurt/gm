@@ -31,6 +31,9 @@ type StreamKey = string;
 function keyForTick(symbol: string, viewerId: string): StreamKey {
   return `tick:${viewerId}:${symbol}`;
 }
+function keyForHyperliquid(symbol: string, viewerId: string): StreamKey {
+  return `hyperliquid:${viewerId}:${symbol}`;
+}
 function keyForExec(symbol: string, viewerId: string): StreamKey {
   return `exec:${viewerId}:${symbol}`;
 }
@@ -61,10 +64,14 @@ export class DataStore {
   private sources = new Map<StreamKey, EventSource>();
 
   private marketListeners = new Map<StreamKey, Set<Listener<MarketSeriesState>>>();
+  private hyperliquidListeners = new Map<StreamKey, Set<Listener<MarketSeriesState>>>();
   private execListeners = new Map<StreamKey, Set<Listener<ExecutionsState>>>();
 
   private marketBuf = new Map<StreamKey, RingBuffer<MarketTick>>();
   private marketError = new Map<StreamKey, FeedError | null>();
+
+  private hyperliquidBuf = new Map<StreamKey, RingBuffer<MarketTick>>();
+  private hyperliquidError = new Map<StreamKey, FeedError | null>();
 
   private execBuf = new Map<StreamKey, RingBuffer<ExecutionEvent>>();
   private execError = new Map<StreamKey, FeedError | null>();
@@ -86,6 +93,27 @@ export class DataStore {
       this.marketListeners.delete(k);
       this.marketBuf.delete(k);
       this.marketError.delete(k);
+      this.maybeCloseSource(k);
+    };
+  }
+
+  subscribeHyperliquidSeries(args: { symbol: string; viewerId: string; onValue: Listener<MarketSeriesState> }): () => void {
+    const k = keyForHyperliquid(args.symbol, args.viewerId);
+    if (!this.hyperliquidListeners.has(k)) this.hyperliquidListeners.set(k, new Set());
+    this.hyperliquidListeners.get(k)!.add(args.onValue);
+
+    args.onValue(this.getHyperliquidSeriesState(args.symbol, args.viewerId));
+    this.ensureHyperliquidStream({ symbol: args.symbol, viewerId: args.viewerId });
+
+    return () => {
+      const set = this.hyperliquidListeners.get(k);
+      if (!set) return;
+      set.delete(args.onValue);
+      if (set.size > 0) return;
+
+      this.hyperliquidListeners.delete(k);
+      this.hyperliquidBuf.delete(k);
+      this.hyperliquidError.delete(k);
       this.maybeCloseSource(k);
     };
   }
@@ -132,6 +160,15 @@ export class DataStore {
     return { type: 'ok', ticks, last: ticks[ticks.length - 1] };
   }
 
+  getHyperliquidSeriesState(symbol: string, viewerId: string): MarketSeriesState {
+    const k = keyForHyperliquid(symbol, viewerId);
+    const ticks = (this.hyperliquidBuf.get(k) ?? new RingBuffer<MarketTick>(300)).toArray();
+    const err = this.hyperliquidError.get(k) ?? null;
+    if (err) return { type: 'error', ticks, error: err };
+    if (ticks.length === 0) return { type: 'idle', ticks };
+    return { type: 'ok', ticks, last: ticks[ticks.length - 1] };
+  }
+
   getExecutionsState(symbol: string, viewerId: string): ExecutionsState {
     const k = keyForExec(symbol, viewerId);
     const executions = (this.execBuf.get(k) ?? new RingBuffer<ExecutionEvent>(50)).toArray();
@@ -143,8 +180,9 @@ export class DataStore {
 
   private maybeCloseSource(k: StreamKey) {
     const stillMarket = this.marketListeners.get(k)?.size;
+    const stillHyperliquid = this.hyperliquidListeners.get(k)?.size;
     const stillExec = this.execListeners.get(k)?.size;
-    if (stillMarket || stillExec) return;
+    if (stillMarket || stillHyperliquid || stillExec) return;
     const es = this.sources.get(k);
     if (es) {
       es.close();
@@ -232,6 +270,48 @@ export class DataStore {
 
     es.onerror = () => {
       this.execError.set(k, { type: 'error', code: 'sse_disconnected', symbol: args.symbol, viewerId: args.viewerId });
+      publish();
+    };
+  }
+
+  private ensureHyperliquidStream(args: { symbol: string; viewerId: string }) {
+    const k = keyForHyperliquid(args.symbol, args.viewerId);
+    if (!this.hyperliquidBuf.has(k)) this.hyperliquidBuf.set(k, new RingBuffer<MarketTick>(300));
+    if (!this.hyperliquidError.has(k)) this.hyperliquidError.set(k, null);
+    if (this.sources.has(k)) return;
+
+    const url = `/api/hyperliquid/stream?symbol=${encodeURIComponent(args.symbol)}&as=${encodeURIComponent(args.viewerId)}`;
+    const es = new EventSource(url);
+    this.sources.set(k, es);
+
+    const publish = () => {
+      const state = this.getHyperliquidSeriesState(args.symbol, args.viewerId);
+      for (const cb of this.hyperliquidListeners.get(k) ?? []) cb(state);
+    };
+
+    es.addEventListener('tick', (evt) => {
+      try {
+        const parsed = JSON.parse(String((evt as MessageEvent).data)) as MarketTick;
+        this.hyperliquidError.set(k, null);
+        this.hyperliquidBuf.get(k)!.push(parsed);
+        publish();
+      } catch {
+        // ignore
+      }
+    });
+
+    es.addEventListener('gm_error', (evt) => {
+      try {
+        const parsed = JSON.parse(String((evt as MessageEvent).data)) as FeedError;
+        this.hyperliquidError.set(k, parsed);
+        publish();
+      } catch {
+        // ignore
+      }
+    });
+
+    es.onerror = () => {
+      this.hyperliquidError.set(k, { type: 'error', code: 'sse_disconnected', symbol: args.symbol, viewerId: args.viewerId });
       publish();
     };
   }

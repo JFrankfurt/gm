@@ -11,6 +11,9 @@ import { decodeWorkspaceDocFromSnapshotPayload } from "./share/snapshotPayload";
 import { registerExecutionsSse } from "./sse/executions";
 import { isMarketEntitled } from "./sse/entitlements";
 import { publishExecution } from "./sse/executionBus";
+import { registerHyperliquidSse } from "./sse/hyperliquid";
+import { registerHyperliquidInfo } from "./hyperliquid/info";
+import { registerWorkspacesList } from "./api/workspacesList";
 
 export type BuildAppOptions = {
   dbPath: string;
@@ -24,6 +27,9 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   const repo = createWorkspaceRepo({ dbPath: opts.dbPath });
   registerMarketDataSse(app);
   registerExecutionsSse(app);
+  registerHyperliquidSse(app);
+  registerHyperliquidInfo(app);
+  registerWorkspacesList(app, repo);
   // Fastify plugins are encapsulated; register websocket + ws routes in the same scope
   // so the `websocket: true` route option is honored.
   app.register(async (wsScope) => {
